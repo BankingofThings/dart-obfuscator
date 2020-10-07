@@ -1,14 +1,14 @@
 # dart_obfuscator
 
-A new Flutter package.
+# About
+This is a plane Dart script, that is obfuscating dart projects, including flutter
 
-## Getting Started
+## Usecase
+Obfuscator will go under /lib directory and obfuscate all files except exported once.
+It's dedicated for libraries, packages and SDKs that should be distributed without revealing source code to the client.
 
-This project is a starting point for a Dart
-[package](https://flutter.dev/developing-packages/),
-a library module containing code that can be shared easily across
-multiple Flutter or Dart projects.
+### High level overview off the algorithm:
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+1. Determine which files should not be obfuscated (the once under lib and once mentioned in export notation) and which should - the rest.  
+2. Move all source code to singe file and delete rest of files
+3. Obfuscate resulting source code
