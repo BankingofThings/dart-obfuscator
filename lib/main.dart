@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dart_obfuscator/log_level.dart';
 import 'package:path/path.dart';
 
+//todo when moving class to output rename it to something path relative, so it does not clash with files with same name from other dirs, same for upper level constants and functions
 // 1. Move file to output
 // 2. keep all the package imports in the file
 // 3. update all relative imports in the file
@@ -33,20 +34,40 @@ void main(List<String> args) async {
   });
 
   final outputFile = File("${libDir.path}/$outputFileName");
+
+  if (outputFile.existsSync()) outputFile.deleteSync();
   outputFile.createSync();
 
-  var theFile = filesToObfuscate[0];
-  final updatedFileContent = updateImportsToAbsolute(libDir, theFile);
-  // 2. keep all the package imports in the file
-// 3. update all relative imports in the file
-  // 1. Move file to output and delete original file
-  outputFile.writeAsStringSync(updatedFileContent);
-  // theFile.delete(recursive: false);
+  moveSourceCodeToOuptutFile(filesToObfuscate, libDir, outputFile);
 
-// 4. In other files update all references to moved file
+
 }
 
-String updateImportsToAbsolute(Directory libDir, File theFile) {
+void moveSourceCodeToOuptutFile(List<File> filesToObfuscate, Directory libDir, File outputFile) {
+  final allImports = Set<String>();
+  final nonImportLines = List<String>();
+  // final sync = outputFile.openWrite(mode: FileMode.append);
+  filesToObfuscate.forEach((element) {
+    final updatedFileLines = updateImportsToAbsolute(libDir, element);
+    updatedFileLines.forEach((element) {
+      if (isLineImport(element)) {
+        //  .reduce((value, element) => value + "$element\n")
+        allImports.add(element);
+      } else if (!isLinePart(element) && !isLineComment(element)) {
+        // print("$element");
+        nonImportLines.add(element);
+      }
+    });
+  
+    // sync.write(updatedFileLines);
+  });
+  
+  final allLines = (allImports.toList() + nonImportLines).reduce((value, element) => value + "$element\n");
+  outputFile.writeAsStringSync(allLines);
+}
+
+///returns file line by line with updated import
+List<String> updateImportsToAbsolute(Directory libDir, File theFile) {
   var thePath = theFile.path;
   thePath = thePath.replaceAll(basename(thePath), "");
   // print(theFile.readAsLinesSync());
@@ -62,7 +83,7 @@ String updateImportsToAbsolute(Directory libDir, File theFile) {
     }
   }).toList();
   // print("updatedLines:\n$updatedLines");
-  return updatedLines.reduce((value, element) => value + "$element\n");
+  return updatedLines;
 }
 
 List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
@@ -124,6 +145,10 @@ String clearImportSymbols(String line) {
     throw "This is neither import nor export line";
   }
 }
+
+bool isLineComment(String line) => line.startsWith("//");
+
+bool isLinePart(String line) => line.startsWith("part ");
 
 bool isLineExport(String line) => line.startsWith('export ');
 
