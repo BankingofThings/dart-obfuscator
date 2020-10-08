@@ -8,7 +8,6 @@ import 'package:dart_obfuscator/log_level.dart';
 //1. Inside every class variables and methods can have same names
 
 //todo when moving class to output rename it to something path relative, so it does not clash with files with same name from other dirs, same for upper level constants and functions
-// 2. rename classes
 // 3. rename methods (static and not)
 // 4. rename variables (static and not)
 // 5. store mapping
@@ -45,7 +44,7 @@ void main(List<String> args) async {
   final resultingMapping = Map<String, String>();
   final mappingSymbols = generateMappingsList();
   final codeWithRenamedClasses = renameClasses(codeToObfuscate, mappingSymbols, resultingMapping);
-  updateRawFiles(structure.rawFiles, resultingMapping);
+  updateRawFilesWithObfuscatedClasses(structure.rawFiles, resultingMapping);
   writeToOutput(codeWithRenamedClasses);
 
   updateImportsInNonObfuscatedFiles(structure, outputFileName);
@@ -56,8 +55,4 @@ void main(List<String> args) async {
   final executionTime = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch - programStartTime);
   print("Obfuscation completed in ${executionTime.toIso8601String().split(':').last}");
   print("Result is written to $outputFileName");
-}
-
-void updateRawFiles(List<File> rawFiles, Map<String, String> resultingMapping) {
-
 }

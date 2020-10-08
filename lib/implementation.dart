@@ -25,16 +25,14 @@ Structure determineStructure(Directory libDir, String sourceDirPath) {
   return Structure(rawFiles, filesToObfuscate);
 }
 
-List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
-  return libDir
-      .listSync(recursive: true)
-      .whereType<File>()
-      .where((element) => element.path.split(".").last == "dart")
-      .where((element) => !rawFiles.map((e) => e.path).contains(element.path))
-      .toList();
-}
+List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) => libDir
+    .listSync(recursive: true)
+    .whereType<File>()
+    .where((element) => element.path.split(".").last == "dart")
+    .where((element) => !rawFiles.map((e) => e.path).contains(element.path))
+    .toList();
 
-/// Returns all sources that have to be obfuscated as string
+/// Returns all sources from all files that have to be obfuscated as string
 String scrapCodeToObfuscate(List<File> filesToObfuscate, Directory libDir, String outputFileName) {
   final allImports = Set<String>();
   final nonImportLines = List<String>();
@@ -191,11 +189,21 @@ String renameClasses(String codeToObfuscate, List<String> mappingSymbols, Map<St
   classNames.forEach((theClass) {
     final theMapping = mappingSymbols.removeAt(Random().nextInt(mappingSymbols.length));
     updatedCode = updatedCode.replaceAll(RegExp(theClass), theMapping);
-    resultingMapping[theMapping] = theClass;
+    resultingMapping[theClass] = theMapping;
     print("Rename $theClass to $theMapping");
   });
 
   return updatedCode;
+}
+
+void updateRawFilesWithObfuscatedClasses(List<File> rawFiles, Map<String, String> resultingMapping) {
+  rawFiles.forEach((theFile) {
+    resultingMapping.forEach((String theClass, String theMapping) {
+      final fileText = theFile.readAsStringSync();
+      final updatedText = fileText.replaceAll(RegExp(theClass), theMapping);
+      theFile.writeAsStringSync(updatedText);
+    });
+  });
 }
 
 //endregion
@@ -219,8 +227,28 @@ void deleteEmptyDirectories(Directory libDir) {
 
 //endregion
 
+//region Read-Write
+typedef Modification = String Function(String line);
+
+bool _updateFileLineByLine(File file, Modification modification) {
+  final lines = file.readAsLinesSync();
+
+  var updatedLines = List<String>();
+  lines.forEach((theLine) {
+    var modifiedLine = modification(theLine);
+    if (modifiedLine != null) {
+      updatedLines.add(modifiedLine);
+    }
+  });
+
+  file.writeAsStringSync(updatedLines.reduce((value, element) => "$value\n$element"));
+  return updatedLines.length < lines.length;
+}
+
 void writeToOutput(String text) {
   if (obfuscatedOutputFile.existsSync()) obfuscatedOutputFile.deleteSync();
   obfuscatedOutputFile.createSync();
   obfuscatedOutputFile.writeAsStringSync(text);
 }
+
+//endregion
