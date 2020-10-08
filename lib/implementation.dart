@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dart_obfuscator/log_level.dart';
 import 'package:dart_obfuscator/main.dart';
 import 'package:dart_obfuscator/models.dart';
 import 'package:path/path.dart';
 
+//region Files processing
 Structure determineStructure(Directory libDir, String sourceDirPath) {
   if (!libDir.existsSync()) {
     throw "Directory $sourceDirPath does not exists or does not contain /lib dir";
@@ -21,6 +23,15 @@ Structure determineStructure(Directory libDir, String sourceDirPath) {
     if (logLevel == LogLevel.VERBOSE) print("${element.path}");
   });
   return Structure(rawFiles, filesToObfuscate);
+}
+
+List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
+  return libDir
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((element) => element.path.split(".").last == "dart")
+      .where((element) => !rawFiles.map((e) => e.path).contains(element.path))
+      .toList();
 }
 
 /// Returns all sources that have to be obfuscated as string
@@ -43,6 +54,8 @@ String scrapCodeToObfuscate(List<File> filesToObfuscate, Directory libDir, Strin
   final allLines = (allImports.toList() + nonImportLines).reduce((value, element) => value + "$element\n");
   return allLines;
 }
+
+//endregion
 
 //region imports
 bool isImportOfFileToBeDeleted(String absoluteImport, List<File> filesToObfuscate) {
@@ -89,17 +102,6 @@ void updateImportsInNonObfuscatedFiles(Structure structure, String outputFileNam
     if (logLevel == LogLevel.VERBOSE) print("Update ${lines.length - updatedLines.length} imports for file: ${outputFilePath}");
     file.writeAsStringSync(updatedLines.reduce((value, element) => "$value\n$element"));
   });
-}
-
-//endregion
-
-List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
-  return libDir
-      .listSync(recursive: true)
-      .whereType<File>()
-      .where((element) => element.path.split(".").last == "dart")
-      .where((element) => !rawFiles.map((e) => e.path).contains(element.path))
-      .toList();
 }
 
 List<File> findExportedFiles(List<FileSystemEntity> rootFiles) {
@@ -151,6 +153,10 @@ bool isLineImport(String line) => line.startsWith('import ');
 
 bool isLineRelativeImport(String line) => isLineImport(line) && !line.contains("'package:") && !line.startsWith("import 'dart:");
 
+//endregion
+
+//region Obfuscation
+
 //todo what if there's not enough mappings?
 /// Generates mappings that later will
 List<String> generateMappingsList() {
@@ -176,6 +182,25 @@ List<String> generateMappingsList() {
   return mappingSymbols;
 }
 
+String renameClasses(String codeToObfuscate, List<String> mappingSymbols, Map<String, String> resultingMapping) {
+  final classNames = RegExp("class (.*?)[^a-zA-Z0-9_]").allMatches(codeToObfuscate).map((match) {
+    return codeToObfuscate.substring(match.start, match.end).replaceAll('class ', '').trim();
+  }).toList();
+
+  var updatedCode = codeToObfuscate;
+  classNames.forEach((theClass) {
+    final theMapping = mappingSymbols.removeAt(Random().nextInt(mappingSymbols.length));
+    updatedCode = updatedCode.replaceAll(RegExp(theClass), theMapping);
+    resultingMapping[theMapping] = theClass;
+    print("Rename $theClass to $theMapping");
+  });
+
+  return updatedCode;
+}
+
+//endregion
+
+//region Clean up
 /// Delete files that are scrabbed and code from which will be written to single file and obfuscated
 void deleteScrappedSourceFiles(List<File> filesToObfuscate) {
   filesToObfuscate.forEach((element) {
@@ -185,10 +210,17 @@ void deleteScrappedSourceFiles(List<File> filesToObfuscate) {
   });
 }
 
-void writeToOutput(String text) {
-  final outputFile = File("${libDir.path}/$outputFileName");
+//todo only works for hightes level leaves, not for root folder (services folder is not deleted)
+void deleteEmptyDirectories(Directory libDir) {
+  libDir.listSync(recursive: true).whereType<Directory>().where((element) => element.listSync(recursive: true).isEmpty).forEach((emptyDir) {
+    emptyDir.deleteSync();
+  });
+}
 
-  if (outputFile.existsSync()) outputFile.deleteSync();
-  outputFile.createSync();
-  outputFile.writeAsStringSync(text);
+//endregion
+
+void writeToOutput(String text) {
+  if (obfuscatedOutputFile.existsSync()) obfuscatedOutputFile.deleteSync();
+  obfuscatedOutputFile.createSync();
+  obfuscatedOutputFile.writeAsStringSync(text);
 }
