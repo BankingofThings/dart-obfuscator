@@ -2,43 +2,26 @@ import 'dart:io';
 
 import 'package:dart_obfuscator/log_level.dart';
 import 'package:dart_obfuscator/main.dart';
+import 'package:dart_obfuscator/models.dart';
 import 'package:path/path.dart';
 
-List<File> determineStructure(Directory libDir, String sourceDirPath) {
+Structure determineStructure(Directory libDir, String sourceDirPath) {
   if (!libDir.existsSync()) {
     throw "Directory $sourceDirPath does not exists or does not contain /lib dir";
   }
 
-  final rootFiles = libDir.listSync(recursive: false).where((element) => element is File).toList();
+  final rootFiles = libDir.listSync(recursive: false).where((element) => element is File).whereType<File>().toList();
   final exportedFiles = findExportedFiles(rootFiles);
-  final rawFiles = rootFiles + exportedFiles;
+  final List<File> rawFiles = rootFiles + exportedFiles;
+  rawFiles.removeWhere((element) => element.path == "${libDir.path}/$outputFileName");
 
   if (logLevel == LogLevel.VERBOSE) print("Files to obfuscate");
   List<File> filesToObfuscate = findFilesToObfuscate(libDir, rawFiles);
   filesToObfuscate.forEach((element) {
     if (logLevel == LogLevel.VERBOSE) print("${element.path}");
   });
-  return filesToObfuscate;
+  return Structure(rawFiles, filesToObfuscate);
 }
-
-// void determineStructure(List<String> args) {
-//
-//   if (!libDir.existsSync()) {
-//     throw "Directory $sourceDirPath does not exists or does not contain /lib dir";
-//   }
-//
-//   final rootFiles = libDir.listSync(recursive: false).where((element) => element is File).toList();
-//   final exportedFiles = findExportedFiles(rootFiles);
-//   final rawFiles = rootFiles + exportedFiles;
-//
-//   if (logLevel == LogLevel.VERBOSE) print("Files to obfuscate");
-//   List<File> filesToObfuscate = findFilesToObfuscate(libDir, rawFiles);
-//   filesToObfuscate.forEach((element) {
-//     if (logLevel == LogLevel.VERBOSE) print("${element.path}");
-//   });
-//
-//
-// }
 
 /// Returns all sources that have to be obfuscated as string
 String scrapCodeToObfuscate(List<File> filesToObfuscate, Directory libDir, String outputFileName) {
@@ -61,6 +44,7 @@ String scrapCodeToObfuscate(List<File> filesToObfuscate, Directory libDir, Strin
   return allLines;
 }
 
+//region imports
 bool isImportOfFileToBeDeleted(String absoluteImport, List<File> filesToObfuscate) {
   final knownPaths = filesToObfuscate.map((e) => e.path.split('/lib/').last);
   final strippedImport = absoluteImport.replaceAll(RegExp("^(.*?)/"), '').split("'").first;
@@ -71,13 +55,43 @@ String updateImportToAbsoluteIfNeeded(String line, String sourceFilePath) {
   if (isLineRelativeImport(line)) {
     final relativePath = sourceFilePath.replaceAll(basename(sourceFilePath), "").split("/lib/").last;
     final newLine = line.replaceAll("import '", "import 'package:$packageName/$relativePath");
-
     // print("Replace relative $line\nto: $newLine");
     return newLine;
   } else {
     return line;
   }
 }
+
+/// Receives import or export line and returns cleared path.
+String clearImportSymbols(String line) {
+  if (isLineImport(line)) {
+    return line.replaceAll('import \'', '').replaceAll("\'", "").replaceAll('\;', "");
+  } else if (isLineExport(line)) {
+    var clear = line.replaceAll('export \'', '').replaceAll("\'", "").replaceAll('\;', "");
+    return clear;
+  } else {
+    throw "This is neither import nor export line";
+  }
+}
+
+void updateImportsInNonObfuscatedFiles(Structure structure, String outputFileName) {
+  structure.rawFiles.forEach((file) {
+    final lines = file.readAsLinesSync();
+
+    final outputFileImport = "import 'package:$packageName/$outputFileName';";
+    var updatedLines =
+        lines.where((element) => !isLineImport(element) || !isImportOfFileToBeDeleted(element, structure.filesToObfuscate)).toList();
+    if (updatedLines.length < lines.length) {
+      updatedLines = ["$outputFileImport"] + updatedLines;
+    }
+
+    var outputFilePath = basename(file.path);
+    if (logLevel == LogLevel.VERBOSE) print("Update ${lines.length - updatedLines.length} imports for file: ${outputFilePath}");
+    file.writeAsStringSync(updatedLines.reduce((value, element) => "$value\n$element"));
+  });
+}
+
+//endregion
 
 List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
   return libDir
@@ -125,18 +139,6 @@ List<File> checkExports(File file) {
   });
 
   return exportFiles;
-}
-
-/// Receives import or export line and returns cleared path.
-String clearImportSymbols(String line) {
-  if (isLineImport(line)) {
-    return line.replaceAll('import \'', '').replaceAll("\'", "").replaceAll('\;', "");
-  } else if (isLineExport(line)) {
-    var clear = line.replaceAll('export \'', '').replaceAll("\'", "").replaceAll('\;', "");
-    return clear;
-  } else {
-    throw "This is neither import nor export line";
-  }
 }
 
 bool isLineComment(String line) => line.startsWith("//");
@@ -188,5 +190,5 @@ void writeToOutput(String text) {
 
   if (outputFile.existsSync()) outputFile.deleteSync();
   outputFile.createSync();
-  outputFile.writeAsStringSync(text); //todo may be not write yet?
+  outputFile.writeAsStringSync(text);
 }

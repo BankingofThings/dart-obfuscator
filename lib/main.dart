@@ -24,9 +24,10 @@ void main(List<String> args) async {
 
   print("args: $args");
 
-  List<File> filesToObfuscate = determineStructure(libDir, sourceDirPath);
-  final codeToObfuscate = scrapCodeToObfuscate(filesToObfuscate, libDir, outputFileName);
-  // deleteScrappedSourceFiles(filesToObfuscate);
+  final structure = determineStructure(libDir, sourceDirPath);
+  final codeToObfuscate = scrapCodeToObfuscate(structure.filesToObfuscate, libDir, outputFileName);
+  deleteScrappedSourceFiles(structure.filesToObfuscate);
+  deleteEmptyDirectories(libDir);
 
   //todo delete empty directories
   //todo delete not needed imports in output file
@@ -37,9 +38,18 @@ void main(List<String> args) async {
   final codeWithRenamedClasses = renameClasses(codeToObfuscate, mappingSymbols);
   writeToOutput(codeWithRenamedClasses);
 
+  updateImportsInNonObfuscatedFiles(structure, outputFileName);
+
   final executionTime = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch - programStartTime);
   print("Obfuscation completed in ${executionTime.toIso8601String().split(':').last}");
   print("Result is written to $outputFileName");
+}
+
+//todo only works for hightes level leaves, not for root folder (services folder is not deleted)
+void deleteEmptyDirectories(Directory libDir) {
+  libDir.listSync(recursive: true).whereType<Directory>().where((element) => element.listSync(recursive: true).isEmpty).forEach((emptyDir) {
+    emptyDir.deleteSync();
+  });
 }
 
 String renameClasses(String codeToObfuscate, List<String> mappingSymbols) {
