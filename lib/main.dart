@@ -26,11 +26,12 @@ void main(List<String> args) async {
 
   List<File> filesToObfuscate = determineStructure(libDir, sourceDirPath);
   final codeToObfuscate = scrapCodeToObfuscate(filesToObfuscate, libDir, outputFileName);
-  deleteScrappedSourceFiles(filesToObfuscate);
+  // deleteScrappedSourceFiles(filesToObfuscate);
 
   //todo delete empty directories
   //todo delete not needed imports in output file
   //todo update imports for non-obfuscated files (for every file that contains ref to deleted file replace it with output file import)
+  //todo import import 'package:finn_dart_sdk/src/services/../shared_prefs.dart'; is not deleted
 
   final mappingSymbols = generateMappingsList();
   final codeWithRenamedClasses = renameClasses(codeToObfuscate, mappingSymbols);

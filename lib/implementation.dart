@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:dart_obfuscator/log_level.dart';
@@ -46,49 +45,38 @@ String scrapCodeToObfuscate(List<File> filesToObfuscate, Directory libDir, Strin
   final allImports = Set<String>();
   final nonImportLines = List<String>();
   filesToObfuscate.forEach((theFile) {
-
     theFile.readAsLinesSync().forEach((line) {
-        if (isLineImport(line)) {
-          allImports.add(line);
-        } else if (!isLinePart(line) && !isLineComment(line)) {
-          nonImportLines.add(line);
+      if (isLineImport(line)) {
+        var absoluteImport = updateImportToAbsoluteIfNeeded(line, theFile.path);
+        if (!isImportOfFileToBeDeleted(absoluteImport, filesToObfuscate)) {
+          allImports.add(absoluteImport);
         }
+      } else if (!isLinePart(line) && !isLineComment(line)) {
+        nonImportLines.add(line);
+      }
     });
-
-    // final updatedFileLines = updateImportsToAbsolute(libDir, theFile);
-    // updatedFileLines.forEach((element) {
-    //   if (isLineImport(element)) {
-    //     allImports.add(element);
-    //   } else if (!isLinePart(element) && !isLineComment(element)) {
-    //     nonImportLines.add(element);
-    //   }
-    // });
-    //
   });
 
   final allLines = (allImports.toList() + nonImportLines).reduce((value, element) => value + "$element\n");
-  
   return allLines;
 }
 
-///returns file line by line with updated import
-List<String> updateImportsToAbsolute(Directory libDir, File theFile) {
-  var thePath = theFile.path;
-  thePath = thePath.replaceAll(basename(thePath), "");
-  // print(theFile.readAsLinesSync());
-  final updatedLines = theFile.readAsLinesSync().map((line) {
-    if (isLineRelativeImport(line)) {
-      final relativePath = thePath.split("/lib/").last;
-      final newLine = line.replaceAll("import '", "import 'package:$packageName/$relativePath");
+bool isImportOfFileToBeDeleted(String absoluteImport, List<File> filesToObfuscate) {
+  final knownPaths = filesToObfuscate.map((e) => e.path.split('/lib/').last);
+  final strippedImport = absoluteImport.replaceAll(RegExp("^(.*?)/"), '').split("'").first;
+  return knownPaths.contains(strippedImport);
+}
 
-      print("Replace relative import:\n$line\nto:\n$newLine");
-      return newLine;
-    } else {
-      return line;
-    }
-  }).toList();
-  // print("updatedLines:\n$updatedLines");
-  return updatedLines;
+String updateImportToAbsoluteIfNeeded(String line, String sourceFilePath) {
+  if (isLineRelativeImport(line)) {
+    final relativePath = sourceFilePath.replaceAll(basename(sourceFilePath), "").split("/lib/").last;
+    final newLine = line.replaceAll("import '", "import 'package:$packageName/$relativePath");
+
+    // print("Replace relative $line\nto: $newLine");
+    return newLine;
+  } else {
+    return line;
+  }
 }
 
 List<File> findFilesToObfuscate(Directory libDir, List<FileSystemEntity> rawFiles) {
@@ -160,7 +148,6 @@ bool isLineExport(String line) => line.startsWith('export ');
 bool isLineImport(String line) => line.startsWith('import ');
 
 bool isLineRelativeImport(String line) => isLineImport(line) && !line.contains("'package:") && !line.startsWith("import 'dart:");
-
 
 //todo what if there's not enough mappings?
 /// Generates mappings that later will
