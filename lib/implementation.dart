@@ -181,9 +181,10 @@ List<String> generateMappingsList() {
 }
 
 String renameClasses(String codeToObfuscate, List<String> mappingSymbols, Map<String, String> resultingMapping) {
-  final classNames = RegExp("class (.*?)[^a-zA-Z0-9_]").allMatches(codeToObfuscate).map((match) {
-    return codeToObfuscate.substring(match.start, match.end).replaceAll('class ', '').trim();
-  }).toList();
+  final classNames = RegExp("class (.*?)[^a-zA-Z0-9_]")
+      .allMatches(codeToObfuscate)
+      .map((match) => match.group(1))
+      .toList();
 
   var updatedCode = codeToObfuscate;
   classNames.forEach((theClass) {
