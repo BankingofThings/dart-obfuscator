@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:dart_obfuscator/implementation.dart';
 import 'package:dart_obfuscator/log_level.dart';
@@ -21,12 +20,10 @@ final outputFileName = "finn_obfuscated.dart";
 final obfuscatedOutputFile = File("${libDir.path}/$outputFileName");
 final libDir = Directory("$sourceDirPath/lib");
 
-
 //todo delete empty directories
 //todo delete not needed imports in output file
 //todo update imports for non-obfuscated files (for every file that contains ref to deleted file replace it with output file import)
 //todo import import 'package:finn_dart_sdk/src/services/../shared_prefs.dart'; is not deleted
-
 
 void main(List<String> args) async {
   final programStartTime = DateTime.now().millisecondsSinceEpoch;
@@ -36,23 +33,26 @@ void main(List<String> args) async {
   final structure = determineStructure(libDir, sourceDirPath);
 
   // Files processing
-  final codeToObfuscate = scrapCodeToObfuscate(structure.filesToObfuscate, libDir, outputFileName);
+  final codeToObfuscate =
+      scrapCodeToObfuscate(structure.filesToObfuscate, libDir, outputFileName);
   deleteScrappedSourceFiles(structure.filesToObfuscate);
   deleteEmptyDirectories(libDir);
 
   // Obfuscation
   final resultingMapping = Map<String, String>();
   final mappingSymbols = generateMappingsList();
-  final codeWithRenamedClasses = renameClasses(codeToObfuscate, mappingSymbols, resultingMapping);
+  final codeWithRenamedClasses =
+      renameClasses(codeToObfuscate, mappingSymbols, resultingMapping);
   updateRawFilesWithObfuscatedClasses(structure.rawFiles, resultingMapping);
   writeToOutput(codeWithRenamedClasses);
 
   updateImportsInNonObfuscatedFiles(structure, outputFileName);
   //todo also update mappings
 
-
   print("________________");
-  final executionTime = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch - programStartTime);
-  print("Obfuscation completed in ${executionTime.toIso8601String().split(':').last}");
+  final executionTime = DateTime.fromMillisecondsSinceEpoch(
+      DateTime.now().millisecondsSinceEpoch - programStartTime);
+  print(
+      "Obfuscation completed in ${executionTime.toIso8601String().split(':').last}");
   print("Result is written to $outputFileName");
 }

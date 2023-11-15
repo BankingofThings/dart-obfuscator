@@ -1,14 +1,15 @@
 name: dart_obfuscator
-description: A new Flutter package.
+description: A command line tool that obsfucate dart code that can be 
+distribued as a package. 
 version: 0.0.1
-author:
 homepage:
+repository: https://github.com/BankingofThings/dart-obfuscator
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  path: 1.7.0
+  path: ^1.8.3
 
 dev_dependencies:
   test: ^1.15.4
