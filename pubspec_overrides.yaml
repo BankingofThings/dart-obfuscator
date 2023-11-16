@@ -1,0 +1,3 @@
+dependency_overrides:
+  codemod_core:
+    path: ../dart_codemod/codemod_core

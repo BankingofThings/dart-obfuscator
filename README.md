@@ -23,3 +23,31 @@ It's dedicated for libraries, packages and SDKs that should be distributed witho
 ```text
 dart lib/main.dart "path/to/your/flutter-project" -o "output_file_name" //todo
 ```
+
+
+# Reference material
+
+Discussion on refactoring
+
+https://groups.google.com/a/dartlang.org/g/analyzer-discuss/c/7-B75W1MG5k
+
+
+# the specficiation for the analysis servers api.
+
+https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html#type_RefactoringKind
+
+
+# package that launches an analysis server
+https://pub.dev/packages/analysis_server_lib
+
+# package to build plugins that extends the analysis server.
+https://pub.dev/packages/analyzer_plugin
+
+# codemod a cli interactive to for doing refactoring.
+https://pub.dev/packages/codemod
+
+
+# attributions
+Some code taken from:
+
+https://github.com/Workiva/dart_codemod

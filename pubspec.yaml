@@ -1,6 +1,6 @@
 name: dart_obfuscator
 description: A command line tool that obsfucate dart code that can be 
-distribued as a package. 
+    distribued as a package. 
 version: 0.0.1
 homepage:
 repository: https://github.com/BankingofThings/dart-obfuscator
@@ -9,7 +9,21 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  analyzer: ^5.0.0
+  ansi: ^0.4.2
+  args: ^2.4.2
+  codemod_core: ^1.0.0
+  dcli: ^3.2.0
+  io: ^1.0.4
+  logging: ^1.2.0
+  meta: ^1.11.0
   path: ^1.8.3
+  pubspec_manager: ^1.0.0-alpha.11
+  quiver: ^3.2.1
+  source_span: ^1.10.0
+  stack_trace: ^1.11.1
+  strings: ^2.0.3
 
 dev_dependencies:
+  lint_hard: ^4.0.0
   test: ^1.15.4
