@@ -3,14 +3,12 @@ import 'package:dcli/dcli.dart';
 import 'package:path/path.dart' hide equals;
 import 'package:test/test.dart';
 
+import 'common.dart';
 import 'project_context_mock.dart';
 
 void main() {
   group('comments', () {
     test('all', () async {
-      final pathToInputLib = join('test', 'fixtures', 'input', 'lib');
-      final pathToOutputLib = join('test', 'fixtures', 'output', 'lib');
-
       final context = ProjectContextMock(pathToInputLib);
 
       await withTempDir((tempDir) async {
@@ -21,8 +19,8 @@ void main() {
             pathToSourceParent: pathToInputLib,
             pathToTargetParent: tempDir);
 
-        expect(read(join(tempDir, 'comments.dart')).toParagraph(),
-            read(join(pathToOutputLib, 'comments_result.dart')).toParagraph());
+        compareFiles(join(tempDir, 'comments.dart'),
+            join(pathToOutputLib, 'comments_result.dart'));
       });
     });
   });
