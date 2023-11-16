@@ -34,27 +34,36 @@ void main(List<String> args) async {
         abbr: 'o',
         help: 'Path to store the obfuscated project',
         mandatory: true)
+    ..addOption('input',
+        abbr: 'i',
+        help:
+            '''Path to the location of the project to obfuscate. Defaults to the current directory''',
+        mandatory: true)
     ..addFlag('overwrite', abbr: 'w', help: '''
 If the output path exist then it will be overwritten. 
 Basic checks are peformed to ensure that the target directory was created by
 the obfuscator.''');
 
+  late String pathToProject;
   late String pathToObfuscatedProject;
   late bool overwrite;
   try {
     final parsed = parser.parse(args);
     pathToObfuscatedProject = parsed['output'] as String;
+    pathToProject = parsed['input'] as String? ?? pwd;
     overwrite = parsed['overwrite'] as bool;
   } on FormatException catch (e) {
     printerr(e.message);
   }
 
-  if (DartProject.findProject(pwd) == null) {
+  final project = DartProject.findProject(pathToProject);
+  if (project == null) {
     printerr(red('The current directory does not contain a Dart project.'));
     exit(1);
   }
 
-  final projectRoot = DartProject.self.pathToProjectRoot;
+  final projectRoot = project.pathToProjectRoot;
+
   final programStartTime = DateTime.now().millisecondsSinceEpoch;
 
   print(green('preparing $pathToObfuscatedProject'));
@@ -79,6 +88,11 @@ Future<void> _obfuscate(
 
     print(green('obfuscating $projectRoot'));
     await obfuscatedProject.obfuscate();
+
+    print(green('obfuscation - complete'));
+    print(green('running post processing'));
+    obfuscatedProject.processProcessing();
+    print(green('post processing - complete'));
   } on StructureException catch (e) {
     printerr(red(e.message));
     exit(1);

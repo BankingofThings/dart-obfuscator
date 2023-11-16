@@ -36,11 +36,19 @@ class ObfuscatedProject implements ProjectContext {
     _copyCoreStructure();
 
     libraries =
-        find('*.dart', workingDirectory: pathToTargetProject).toList().toSet();
+        find('*.dart', workingDirectory: join(pathToTargetProject, 'lib'))
+            .toList()
+            .toSet();
   }
 
   void processProcessing() {
+    _copyDir('android');
     _copyDir('example');
+    _copyDir('ios');
+    _copyDir('linux');
+    _copyDir('macos');
+    _copyDir('windows');
+    _copyFile('plugin.iml');
   }
 
   /// Copies the core structure of the dart package to the target directory
@@ -53,25 +61,35 @@ class ObfuscatedProject implements ProjectContext {
     _copyFile('pubspec_overrides.yaml');
     _copyFile('README');
     _copyFile('README.md');
-    _copyDir('lib');
+    _copyDir('lib', optional: false);
+    _copyDir('test');
   }
 
   /// Copies [projectRelativePathToFile] which is relative
   /// to [pathToSourceProject] into the same location with
   /// the same filename in the [pathToTargetProject]
   void _copyFile(String projectRelativePathToFile, {bool optional = true}) {
-    final pathToSrc = join(pathToSourceProject, projectRelativePathToFile);
+    final pathToSrc = truepath(pathToSourceProject, projectRelativePathToFile);
     if (optional && !exists(pathToSrc)) {
       return;
     }
-    copy(pathToSrc, join(pathToTargetProject, projectRelativePathToFile));
+    copy(pathToSrc, truepath(pathToTargetProject, projectRelativePathToFile));
     print('copied: $projectRelativePathToFile');
   }
 
-  void _copyDir(String pathToDir) {
-    final targetLib = join(pathToTargetProject, 'lib');
-    createDir(targetLib, recursive: true);
-    copyTree(join(pathToSourceProject, 'lib'), targetLib);
+  void _copyDir(String pathToDir, {bool optional = true}) {
+    final srcDir = truepath(pathToSourceProject, pathToDir);
+
+    if (optional && !exists(srcDir)) {
+      return;
+    }
+
+    final targetDir = truepath(pathToTargetProject, pathToDir);
+
+    createDir(targetDir, recursive: true);
+    copyTree(srcDir, targetDir);
+
+    print('copied: $srcDir');
   }
 
   Future<void> obfuscate() async {
@@ -81,12 +99,10 @@ class ObfuscatedProject implements ProjectContext {
 
     /// do we need to pass a stream to the generator given how big our list
     /// of paths could end up being.
-    final paths =
-        find('*.dart', workingDirectory: pathToSourceProject).toList();
-    final changeSetStream = pg.generate(paths: paths);
+    final changeSetStream = pg.generate(paths: libraries);
 
     await for (final changeSet in changeSetStream) {
-      final targetPath = join(pathToTargetProject,
+      final targetPath = truepath(pathToTargetProject,
           relative(changeSet.sourceFile.url!.path, from: pathToSourceProject));
       changeSet.applyAndSave(destPath: targetPath);
     }
