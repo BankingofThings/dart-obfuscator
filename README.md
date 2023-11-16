@@ -1,28 +1,56 @@
-# dart_obfuscator
+# op_obfuscator
 
 # About
-This is a plane Dart script, that is obfuscating dart projects, including flutter
+The OnePub obfuscator is designed to obfuscate Dart libraries.
+
+The action that OnePub obfuscator takes are:
+* remove all comments
+* rename variable and class names with short non-contextual names e.g. 'aa'.
+* private delcarations that start with '_' are retained as private.
+* any libraries that are exported will remain non-obfuscated.
+
+## Non-actions
+* all platform specific code (java, swfit...) is left untouched
+* example code is left untouched.
+* unit tests are not carried across 
+
+TODO: review unit tests
+Users may want to run unit tests after obfuscating code.
+Perhaps we need to copy them across and treat them like a public interface
+It is then the users job to delete them before publishing.
+Unit tests don't get uploaded so seems ok.
+
+
 
 ## Usecase
-Obfuscator will go under /lib directory and obfuscate all files except exported ones.
-It's dedicated for libraries, packages and SDKs that should be distributed without revealing source code to the client.
+For distributing source packages to customers.
 
-### High level overview off the algorithm:
+## Non-use case
+The flutter compiler has an --obfuscate flag which will obfuscate compiled code.
+You should use the --obfucscate flag when compiling your release code.
+In this case you don't need to use op-obfuscator
 
-1. Determine which dart libraries (.dart files) should not be obfuscated 
-(the libraries under lib and libraries exported in the packages barrel file) and which should - the rest.  
-2. Move all source code to singe file and delete rest of files
-3. Obfuscate resulting source code
+The op-obfuscator is only required when you are distributing source.
 
 
 ## Usage
-1. Make sure you can run dart scripts, see https://dart.dev/tutorials/server/get-started
-2. Ensure you have all changes in your repository saved, script will delete all files ???
-3. Make sure your project is compilable and runnable, all the generatable files are generated.
-3. Run console command:
-```text
-dart lib/main.dart "path/to/your/flutter-project" -o "output_file_name" //todo
+Obtain a OnePub Customer Distribution License (CDL)
+Email 'support@onepub.dev' asking fro access to the op-obfuscator
+The support team will email the installation details.
+
+Activate the op-obfuscator script via:
 ```
+dart pub global activate op-obfuscator
+```
+
+To run the obfuscator:
+
+```
+cd mypackage
+op-obfuscator --output /some/directory
+```
+
+
 
 
 # Reference material
