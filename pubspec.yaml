@@ -9,7 +9,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  analyzer: ^5.0.0
+  analyzer: ^6.0.0
   ansi: ^0.4.2
   args: ^2.4.2
   codemod_core: ^1.0.0

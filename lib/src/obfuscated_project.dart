@@ -1,5 +1,6 @@
 import 'package:codemod_core/codemod_core.dart';
 import 'package:dcli/dcli.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import 'exceptions.dart';
@@ -14,14 +15,19 @@ class ObfuscatedProject implements ProjectContext {
   ObfuscatedProject(
       {required this.pathToSourceProject, required this.pathToTargetProject});
 
-  String pathToSourceProject;
-  String pathToTargetProject;
+  final String pathToSourceProject;
+  final String pathToTargetProject;
 
   /// List of dart libraries that are part of the project.
   /// We use this to identify internal and external calls
   /// as we can't obfuscate calls to external libraries.
-  Set<Path> libraries = <Path>{};
+  Set<Path> _libraries = <Path>{};
 
+  ///
+  /// Prepare the code for obfuscation by copying it
+  /// across to the output directory and selecting
+  /// the files to obfuscate.
+  ///
   void prepare({required bool overwrite}) {
     // Preparation
     if (exists(pathToTargetProject)) {
@@ -35,12 +41,46 @@ class ObfuscatedProject implements ProjectContext {
     createDir(pathToTargetProject, recursive: true);
     _copyCoreStructure();
 
-    libraries =
+    _libraries =
         find('*.dart', workingDirectory: join(pathToTargetProject, 'lib'))
             .toList()
             .toSet();
   }
 
+  ///
+  /// Run the actual obfuscation process.
+  ///
+  Future<void> obfuscate() async => obfuscateList(
+      context: this,
+      paths: _libraries,
+      pathToSourceParent: pathToSourceProject,
+      pathToTargetParent: pathToTargetProject);
+
+  @visibleForTesting
+  static Future<void> obfuscateList(
+      {required ProjectContext context,
+      required Set<String> paths,
+      required String pathToSourceParent,
+      required String pathToTargetParent}) async {
+    final pg = PatchGenerator([
+      Visitor(context).call,
+    ]);
+
+    /// do we need to pass a stream to the generator given how big our list
+    /// of paths could end up being.
+    final changeSetStream = pg.generate(paths: paths);
+
+    await for (final changeSet in changeSetStream) {
+      final targetPath = truepath(pathToTargetParent,
+          relative(changeSet.sourceFile.url!.path, from: pathToSourceParent));
+      changeSet.applyAndSave(destPath: targetPath);
+    }
+  }
+
+  ///
+  /// Run post obfuscation tasks such as copying any files
+  /// or directories that didn't need to be obfuscated.
+  ///
   void processProcessing() {
     _copyDir('android');
     _copyDir('example');
@@ -92,25 +132,9 @@ class ObfuscatedProject implements ProjectContext {
     print('copied: $srcDir');
   }
 
-  Future<void> obfuscate() async {
-    final pg = PatchGenerator([
-      Visitor(this).call,
-    ]);
-
-    /// do we need to pass a stream to the generator given how big our list
-    /// of paths could end up being.
-    final changeSetStream = pg.generate(paths: libraries);
-
-    await for (final changeSet in changeSetStream) {
-      final targetPath = truepath(pathToTargetProject,
-          relative(changeSet.sourceFile.url!.path, from: pathToSourceProject));
-      changeSet.applyAndSave(destPath: targetPath);
-    }
-  }
-
   @override
   bool isLocalLibrary(String pathToLibrary) =>
-      libraries.contains(pathToLibrary);
+      _libraries.contains(pathToLibrary);
 
   @override
   String replace(String name) => Replacer().replace(name);

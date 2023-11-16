@@ -9,9 +9,11 @@
             "request": "launch",
             "type": "dart",
             "args": [
+                "--input=test/fixtures/plugin",
                 "--output=/tmp/obfuscator",
-                "--overwrite"
-            ]
+                "--overwrite",
+            ],
+           
         }
     ]
 }
