@@ -2,7 +2,7 @@ include: package:lint_hard/all.yaml
 
 analyzer:
  exclude:
-    - test/fixtures/parsing/**
+     - test/fixtures/parsing/output/**
 linter:
   rules:
     avoid_print: false
