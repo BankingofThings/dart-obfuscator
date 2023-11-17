@@ -1,18 +1,26 @@
+import 'package:meta/meta.dart';
+
 class A extends ArgumentError {
-  @overrides
+  @override
   @visibleForTesting
   String toString() => 'hi';
 
-  void b() {}
+  void b() {
+
+  }
 }
 
 class C extends A {
-  @overrides
+  @override
   String toString() => 'hi';
-
-  void b() {}
+  
+  @override
+  void b() {
+    
+  }
 }
 
 class D extends A {
+  @override
   void b() {}
 }

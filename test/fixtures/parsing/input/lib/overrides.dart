@@ -1,5 +1,7 @@
+import 'package:meta/meta.dart';
+
 class Test extends ArgumentError {
-  @overrides
+  @override
   @visibleForTesting
   String toString() => 'hi';
 
@@ -9,14 +11,16 @@ class Test extends ArgumentError {
 }
 
 class Test2 extends Test {
-  @overrides
+  @override
   String toString() => 'hi';
 
+  @override
   void doSomething() {
     // no op
   }
 }
 
 class Test3 extends Test {
+  @override
   void doSomething() {}
 }

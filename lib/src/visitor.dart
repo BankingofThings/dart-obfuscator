@@ -1,3 +1,4 @@
+// ignore: implementation_imports
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -23,6 +24,10 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   /// comments aren't fully supported as ast nodes so
   /// we need to process every node to find the associated
   /// comments.
+  ///
+  /// Debugging:
+  /// Place a break point on this visitor to see every element
+  /// that is visited.
   @override
   void visitNode(AstNode node) {
     final comments = checkForComment(node);
@@ -114,6 +119,16 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
     super.visitNamedType(node);
   }
 
+  // For generis class Mine<T>
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    if (_isProjectElement(node.declaredElement)) {
+      final replacement = projectContext.replace(node.name.lexeme);
+      yieldPatch(replacement, node.name.offset, node.name.end);
+    }
+    super.visitTypeParameter(node);
+  }
+
   /// method/function args
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
@@ -150,7 +165,8 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     for (final argument in node.arguments) {
-      if (!_isBuiltInType(argument.beginToken.lexeme)) {
+      if (!_isBuiltInType(argument.beginToken.lexeme) &&
+          !externalType(argument as NamedType)) {
         final replacement = projectContext.replace(argument.beginToken.lexeme);
         yieldPatch(replacement, argument.offset, argument.end);
       }
@@ -186,7 +202,7 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   }
 
   bool _isBuiltInType(String typeName) =>
-      ['int', 'double', 'String', 'bool'].contains(typeName);
+      ['void', 'int', 'double', 'String', 'bool'].contains(typeName);
 
   /// Methods shouldn't be renamed for a number of reasons
   /// * override of external class
@@ -200,7 +216,7 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
   bool isOverride(MethodDeclaration node) {
     for (final element in node.metadata) {
-      if (element.name.name == 'overrides') {
+      if (element.name.name == 'override') {
         return true;
       }
     }
@@ -224,6 +240,16 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
         }
       }
     }
+    return false;
+  }
+
+  /// Checks if the passed type is imported from an external package.
+  bool externalType(NamedType node) {
+    if (node.element != null) {
+      final type = node.element! as TypeDefiningElement;
+      return !_isProjectElement(type.library);
+    }
+    // TODO: we don't actually know!
     return false;
   }
 }
