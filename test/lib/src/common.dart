@@ -7,8 +7,8 @@ import 'package:test/test.dart';
 
 import 'project_context_mock.dart';
 
-final pathToInputLib = truepath('test', 'fixtures', 'input', 'lib');
-final pathToOutputLib = truepath('test', 'fixtures', 'output', 'lib');
+final pathToInputLib = truepath('test', 'fixtures', 'parsing', 'input', 'lib');
+final pathToOutputLib = truepath('test', 'fixtures', 'parsing','output', 'lib');
 
 void compareFiles(String pathToActual, String pathToExpected) {
   final actual = read(pathToActual).toList();
