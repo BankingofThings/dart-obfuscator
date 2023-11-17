@@ -3,7 +3,7 @@ class A extends ArgumentError {
   String toString() => 'hi';
 
   void b() {
-            
+    
   }
 }
 
@@ -12,7 +12,7 @@ class C extends A {
   String toString() => 'hi';
 
   void b() {
-            
+    
   }
 }
 
