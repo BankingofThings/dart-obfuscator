@@ -1,5 +1,8 @@
 include: package:lint_hard/all.yaml
 
+analyzer:
+ exclude:
+    - test/fixtures/parsing/**
 linter:
   rules:
     avoid_print: false
