@@ -41,6 +41,10 @@ class ObfuscatedProject implements ProjectContext {
     createDir(pathToTargetProject, recursive: true);
     _copyCoreStructure();
 
+    /// Run pub get to ensure the AST is fully resolved.
+    print('running dart pub get');
+    DartSdk().runPubGet(pathToTargetProject);
+
     _libraries =
         find('*.dart', workingDirectory: join(pathToTargetProject, 'lib'))
             .toList()
@@ -104,7 +108,7 @@ class ObfuscatedProject implements ProjectContext {
   /// Run post obfuscation tasks such as copying any files
   /// or directories that didn't need to be obfuscated.
   ///
-  void processProcessing() {
+  void postProcessing() {
     _copyDir('android');
     _copyDir('example');
     _copyDir('ios');
@@ -121,7 +125,7 @@ class ObfuscatedProject implements ProjectContext {
     _copyFile('LICENSE.md');
     _copyFile('pubspec.yaml', optional: false);
     _copyFile('pubspec.lock', optional: false);
-    _copyFile('pubspec_overrides.yaml');
+    // _copyFile('pubspec_overrides.yaml');
     _copyFile('README');
     _copyFile('README.md');
     _copyDir('lib', optional: false);
