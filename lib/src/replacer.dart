@@ -7,7 +7,7 @@ class Replacer {
 
   Replacer._internal();
   static final Replacer _self = Replacer._internal();
-  final VariableNameGenerator _gen = VariableNameGenerator();
+  final IdentifierNameGenerator _gen = IdentifierNameGenerator();
 
   final Map<String, String> _replacementMap = <String, String>{};
 
