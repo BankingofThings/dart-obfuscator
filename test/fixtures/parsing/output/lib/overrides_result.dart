@@ -3,18 +3,16 @@ class A extends ArgumentError {
   @visibleForTesting
   String toString() => 'hi';
 
-  void b() {
-    
-  }
+  void b() {}
 }
 
 class C extends A {
   @overrides
   String toString() => 'hi';
 
-  void b() {
-    
-  }
+  void b() {}
 }
 
-class D implements A {}
+class D extends A {
+  void b() {}
+}

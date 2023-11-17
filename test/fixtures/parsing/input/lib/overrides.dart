@@ -17,4 +17,6 @@ class Test2 extends Test {
   }
 }
 
-class Test3 implements Test {}
+class Test3 extends Test {
+  void doSomething() {}
+}
