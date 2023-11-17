@@ -3,17 +3,17 @@
 
 
 
-String x = '';
+String a = '';
 
-String y = ''; 
-
-
+String b = ''; 
 
 
 
 
 
 
-void dosomething() {
+
+
+void c() {
   
 }
