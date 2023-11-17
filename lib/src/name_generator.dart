@@ -19,8 +19,7 @@ class IdentifierNameGenerator {
   int _counter = 0;
 
   String next() {
-    ++_counter;
-    final identifierName = _generateIdentifier(_counter);
+    final identifierName = _generateIdentifier(_counter++);
     return identifierName;
   }
 
