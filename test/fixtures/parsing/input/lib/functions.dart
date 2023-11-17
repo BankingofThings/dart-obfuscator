@@ -1,3 +1,6 @@
+// ignore_for_file: prefer_expression_function_bodies
+// ignore_for_file:  join_return_with_assignment
+
 void simple() {}
 
 void simple2() {

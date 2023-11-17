@@ -19,6 +19,7 @@ import 'src/obfuscated_project.dart';
 // 4. rename variables (static and not)
 // 5. store mapping
 
+// ignore: unreachable_from_main
 const logLevel = LogLevel.DEBUG;
 
 //todo delete empty directories

@@ -18,7 +18,8 @@ void compareFiles(String pathToActual, String pathToExpected) {
   final minlen = min(actual.length, expected.length);
 
   for (var i = 0; i < minlen; i++) {
-    /// we ignore whitespace to make creating the golden results templates easier.
+    /// we ignore whitespace to make creating the golden results
+    /// templates easier.
     expect(actual[i].trim(), expected[i].trim(),
         reason: "line ${i + 1} didn't match");
   }
