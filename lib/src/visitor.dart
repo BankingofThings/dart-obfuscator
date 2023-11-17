@@ -35,7 +35,7 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
         yieldPatch(replacement, comment.offset, comment.end);
       } else {
-        yieldPatch('' , comment.offset, comment.end);
+        yieldPatch('', comment.offset, comment.end);
       }
     }
     super.visitNode(node);
@@ -46,7 +46,16 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_isProjectElement(node.staticElement)) {
+    final libraryElement = node.staticElement;
+    // if (libraryElement == null) {
+    //   if (node.root is Element) {
+    //     libraryElement = (node.root as Element).enclosingElement;
+    //   } else if (node.root is CompilationUnit) {
+    //     libraryElement = (node.root as CompilationUnit).declaredElement;
+    //   }
+    // }
+
+    if (libraryElement == null || _isProjectElement(libraryElement)) {
       final replacement = projectContext.replace(node.name);
       yieldPatch(replacement, node.offset, node.end);
     }
