@@ -2,7 +2,7 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   _fe_analyzer_shared:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: _fe_analyzer_shared
       sha256: "36a321c3d2cbe01cbcb3540a87b8843846e0206df3e691fa7b23e19e78de6d49"

@@ -9,6 +9,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  _fe_analyzer_shared: ^65.0.0
   analyzer: ^6.0.0
   ansi: ^0.4.2
   args: ^2.4.2
