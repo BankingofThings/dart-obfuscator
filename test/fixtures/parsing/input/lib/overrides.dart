@@ -1,5 +1,6 @@
 class Test extends ArgumentError {
   @overrides
+  @visibleForTesting
   String toString() => 'hi';
 
   void doSomething() {
