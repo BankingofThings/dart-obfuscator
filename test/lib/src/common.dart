@@ -8,7 +8,8 @@ import 'package:test/test.dart';
 import 'project_context_mock.dart';
 
 final pathToInputLib = truepath('test', 'fixtures', 'parsing', 'input', 'lib');
-final pathToOutputLib = truepath('test', 'fixtures', 'parsing','output', 'lib');
+final pathToOutputLib =
+    truepath('test', 'fixtures', 'parsing', 'output', 'lib');
 
 void compareFiles(String pathToActual, String pathToExpected) {
   final actual = read(pathToActual).toList();
@@ -17,7 +18,9 @@ void compareFiles(String pathToActual, String pathToExpected) {
   final minlen = min(actual.length, expected.length);
 
   for (var i = 0; i < minlen; i++) {
-    expect(actual[i], expected[i], reason: "line ${i + 1} didn't match");
+    /// we ignore whitespace to make creating the golden results templates easier.
+    expect(actual[i].trim(), expected[i].trim(),
+        reason: "line ${i + 1} didn't match");
   }
 
   expect(actual.length, equals(expected.length));
