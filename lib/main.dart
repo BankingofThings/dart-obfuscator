@@ -34,11 +34,12 @@ void main(List<String> args) async {
         abbr: 'o',
         help: 'Path to store the obfuscated project',
         mandatory: true)
-    ..addOption('input',
-        abbr: 'i',
-        help:
-            '''Path to the location of the project to obfuscate. Defaults to the current directory''',
-        mandatory: true)
+    ..addOption(
+      'input',
+      abbr: 'i',
+      help:
+          '''Path to the location of the project to obfuscate. Defaults to the current directory''',
+    )
     ..addFlag('overwrite', abbr: 'w', help: '''
 If the output path exist then it will be overwritten. 
 Basic checks are peformed to ensure that the target directory was created by
@@ -91,7 +92,7 @@ Future<void> _obfuscate(
 
     print(green('obfuscation - complete'));
     print(green('running post processing'));
-    obfuscatedProject.processProcessing();
+    obfuscatedProject.postProcessing();
     print(green('post processing - complete'));
   } on StructureException catch (e) {
     printerr(red(e.message));
