@@ -45,6 +45,10 @@ class ObfuscatedProject implements ProjectContext {
         find('*.dart', workingDirectory: join(pathToTargetProject, 'lib'))
             .toList()
             .toSet();
+
+    _libraries.addAll(
+        find('*.dart', workingDirectory: join(pathToTargetProject, 'test'))
+            .toList());
   }
 
   ///
@@ -56,6 +60,7 @@ class ObfuscatedProject implements ProjectContext {
       pathToSourceParent: pathToSourceProject,
       pathToTargetParent: pathToTargetProject);
 
+  /// [paths] must be absolute paths.
   @visibleForTesting
   static Future<void> obfuscateList(
       {required ProjectContext context,
@@ -70,10 +75,28 @@ class ObfuscatedProject implements ProjectContext {
     /// of paths could end up being.
     final changeSetStream = pg.generate(paths: paths);
 
+    /// We need to keep track of which libraries didn't
+    /// need to be modified as we will need to manually
+    /// copy these to the target.
+    final _unpatchedLibraries = <Path>{...paths};
+
     await for (final changeSet in changeSetStream) {
-      final targetPath = truepath(pathToTargetParent,
-          relative(changeSet.sourceFile.url!.path, from: pathToSourceParent));
-      changeSet.applyAndSave(destPath: targetPath);
+      final pathToSourceLibrary = changeSet.sourceFile.url!.path;
+      final relativePathToSourceLibrary =
+          relative(pathToSourceLibrary, from: pathToSourceParent);
+      final targetPath =
+          truepath(pathToTargetParent, relativePathToSourceLibrary);
+      changeSet.applyAndSave(destPath: targetPath, skipOverlapping: true);
+      _unpatchedLibraries.remove(pathToSourceLibrary);
+    }
+
+    /// check for any files that were not included in any [ChangeSet]
+    /// and manually copy them across
+    for (final library in _unpatchedLibraries) {
+      final targetPath = truepath(
+          pathToTargetParent, relative(library, from: pathToSourceParent));
+
+      copy(library, targetPath);
     }
   }
 

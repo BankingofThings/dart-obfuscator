@@ -12,13 +12,8 @@ The action that OnePub obfuscator takes are:
 ## Non-actions
 * all platform specific code (java, swfit...) is left untouched
 * example code is left untouched.
-* unit tests are not carried across 
+* unit tests are carried across so you can run tests after obfuscating.
 
-TODO: review unit tests
-Users may want to run unit tests after obfuscating code.
-Perhaps we need to copy them across and treat them like a public interface
-It is then the users job to delete them before publishing.
-Unit tests don't get uploaded so seems ok.
 
 
 
@@ -32,6 +27,9 @@ In this case you don't need to use op-obfuscator
 
 The op-obfuscator is only required when you are distributing source.
 
+## Pre-conditions
+* Your code must be without syntax errors 
+* overrides MUST be annotated with @override
 
 ## Usage
 Obtain a OnePub Customer Distribution License (CDL)
@@ -54,6 +52,11 @@ op-obfuscator --output /some/directory
 
 
 # Reference material
+
+Dart linter provides lots of examples:
+
+https://github.com/dart-code-checker/dart-code-metrics/blob/master/lib/src/analyzers/lint_analyzer/rules/rules_list/format_comment/visitor.dart
+
 
 Discussion on refactoring
 
