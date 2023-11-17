@@ -13,6 +13,11 @@ typedef Replace = String Function(String existing);
 class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   Visitor(this.projectContext);
 
+  /// We need a full resolves AST so that we can determine if
+  /// identifiers are local to the project.
+  @override
+  bool shouldResolveAst(FileContext context) => true;
+
   ProjectContext projectContext;
 
   /// comments aren't fully supported as ast nodes so
@@ -30,22 +35,84 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
         yieldPatch(replacement, comment.offset, comment.end);
       } else {
-        yieldPatch('', comment.offset, comment.end);
+        yieldPatch('' , comment.offset, comment.end);
       }
     }
+    super.visitNode(node);
+  }
+  // VariableDeclarationStatement
+  // StringInterploation
+  // InterpolationExpress
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (_isProjectElement(node.staticElement)) {
+      final replacement = projectContext.replace(node.name);
+      yieldPatch(replacement, node.offset, node.end);
+    }
+
+    super.visitSimpleIdentifier(node);
   }
 
-  //   @override
-  // void visitComment(Comment node) {
-  //   yieldPatch('' * node.length, node.offset, node.end);
+  // @override
+  // void visitReturnStatement(ReturnStatement node) {
+  //   //final replacement = projectContext.replace(node.name);
+  //   //  yieldPatch(replacement, node.offset, node.end);
+  //   super.visitReturnStatement(node);
   // }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    final replacement = projectContext.replace(node.name.lexeme);
+    yieldPatch(replacement, node.name.offset, node.name.end);
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  // @override
+  // void visitFunctionExpression(FunctionExpression node) {
+  //   final replacement = projectContext.replace(node.function.toString());
+  //   yieldPatch(replacement, node.function.offset, node.function.end);
+
+  //   super.visitFunctionReference(node);
+  // }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    final replacement = projectContext.replace(node.function.toString());
+    yieldPatch(replacement, node.function.offset, node.function.end);
+
+    super.visitFunctionReference(node);
+  }
 
   // The actual class declaration
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     final replacement = projectContext.replace(node.name.lexeme);
     yieldPatch(replacement, node.name.offset, node.name.end);
+
+    // if (node.sup)
     super.visitClassDeclaration(node);
+  }
+
+// For supertypes
+  @override
+  void visitNamedType(NamedType node) {
+    if (_isProjectElement(node.element)) {
+      final replacement = projectContext.replace(node.name2.lexeme);
+      yieldPatch(replacement, node.name2.offset, node.name2.end);
+    }
+    super.visitNamedType(node);
+  }
+
+  /// method/function args
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (_isProjectElement(node.declaredElement)) {
+      final replacement = projectContext.replace(node.name!.lexeme);
+      yieldPatch(replacement, node.name!.offset, node.name!.end);
+    }
+    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -84,8 +151,10 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final replacement = projectContext.replace(node.name.lexeme);
-    yieldPatch(replacement, node.name.offset, node.name.end);
+    if (shouldRenameMethod(node)) {
+      final replacement = projectContext.replace(node.name.lexeme);
+      yieldPatch(replacement, node.name.offset, node.name.end);
+    }
     super.visitMethodDeclaration(node);
   }
 
@@ -109,4 +178,43 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
   bool _isBuiltInType(String typeName) =>
       ['int', 'double', 'String', 'bool'].contains(typeName);
+
+  /// Methods shouldn't be renamed for a number of reasons
+  /// * override of external class
+  bool shouldRenameMethod(MethodDeclaration node) {
+    if (isOverride(node) && hasExternalSuperTypeWithMethod(node)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool isOverride(MethodDeclaration node) {
+    for (final element in node.metadata) {
+      if (element.name.name == 'overrides') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// We work our way up the class tree (which can have multiple parents)
+  /// to see if one of them has the same method as [node]
+  bool hasExternalSuperTypeWithMethod(MethodDeclaration node) {
+    final enclosingClass =
+        node.declaredElement!.enclosingElement as ClassElement;
+
+    final methodName = node.name.lexeme;
+    for (final superType in enclosingClass.allSupertypes) {
+      for (final method in superType.methods) {
+        //  final method = child as MethodDeclaration;
+        if (method.name == methodName) {
+          if (!_isProjectElement(superType.element)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 }

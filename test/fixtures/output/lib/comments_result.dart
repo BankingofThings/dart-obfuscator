@@ -1,19 +1,19 @@
-  
-                
-  
 
-               
+
+
+
+
 String a = '';
 
-String b = '';                       
+String b = ''; 
 
-                                
 
-                               
- 
-   
 
-                      
+
+
+
+
+
 void c() {
-          
+  
 }
