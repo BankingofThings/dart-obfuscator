@@ -13,7 +13,15 @@
                 "--output=/tmp/obfuscator",
                 "--overwrite",
             ],
-           
+        },
+        {
+            "name": "dart-obfuscator - self",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--output=/tmp/obfuscator",
+                "--overwrite",
+            ],
         }
     ]
 }

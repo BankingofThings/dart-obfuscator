@@ -12,7 +12,9 @@ dependencies:
   analyzer: ^6.0.0
   ansi: ^0.4.2
   args: ^2.4.2
-  codemod_core: ^1.0.0
+  codemod_core:
+    hosted: https://onepub.dev/api/jbbxpsdavu/
+    version: ^1.0.0
   dcli: ^3.2.0
   io: ^1.0.4
   logging: ^1.2.0
