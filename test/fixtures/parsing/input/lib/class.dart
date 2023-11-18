@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_classes_with_only_static_members
 
 class Test {
+  Test._internal();
   static String _instance = '';
 
   static String get instance => _instance;

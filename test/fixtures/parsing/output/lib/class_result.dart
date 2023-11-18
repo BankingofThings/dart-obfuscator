@@ -2,21 +2,22 @@
 
 
 class A {
-  static String _b = '';
+  A._b();
+  static String _c = '';
 
-  static String get c => _b;
+  static String get d => _c;
 
-  static set c(String c) {
-    _b = c;
+  static set d(String d) {
+    _c = d;
   }
 }
 
-class D implements Exception {
-  D(this.e);
-  String e;
+class E implements Exception {
+  E(this.f);
+  String f;
 }
 
 
-class F extends D {
-  F(super.e);
+class G extends E {
+  G(super.f);
 }
