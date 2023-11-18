@@ -10,3 +10,13 @@ class A {
     _b = c;
   }
 }
+
+class D implements Exception {
+  D(this.e);
+  String e;
+}
+
+
+class F extends D {
+  F(super.e);
+}

@@ -140,10 +140,26 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    if (_isProjectElement(node.declaredElement)) {
+      final replacement = projectContext.replace(node.name.lexeme);
+      yieldPatch(replacement, node.name.offset, node.name.end);
+    }
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     final replacement = projectContext.replace(node.name.lexeme);
     yieldPatch(replacement, node.name.offset, node.name.end);
     super.visitVariableDeclaration(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final replacement = projectContext.replace(node.name.lexeme);
+    yieldPatch(replacement, node.name.offset, node.name.end);
+    super.visitFieldFormalParameter(node);
   }
 
   /// assign a value to a variable.
