@@ -106,8 +106,13 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    final replacement = projectContext.replace(node.name.lexeme);
-    yieldPatch(replacement, node.name.offset, node.name.end);
+    final name = node.name.lexeme;
+
+    /// main is an external refeference method so don't rename it.
+    if (name != 'main') {
+      final replacement = projectContext.replace(name);
+      yieldPatch(replacement, node.name.offset, node.name.end);
+    }
 
     super.visitFunctionDeclaration(node);
   }
