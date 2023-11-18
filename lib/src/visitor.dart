@@ -109,6 +109,15 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
     super.visitClassDeclaration(node);
   }
 
+  // The actual class declaration
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    final replacement = projectContext.replace(node.name.lexeme);
+    yieldPatch(replacement, node.name.offset, node.name.end);
+
+    super.visitDeclaredIdentifier(node);
+  }
+
 // For supertypes
   @override
   void visitNamedType(NamedType node) {
