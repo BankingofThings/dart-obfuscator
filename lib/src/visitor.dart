@@ -175,9 +175,14 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
   /// method/function args
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    if (_isProjectElement(node.declaredElement)) {
-      final replacement = projectContext.replace(node.name!.lexeme);
-      yieldPatch(replacement, node.name!.offset, node.name!.end);
+    /// Function types don't have parameter names
+    /// e.g.
+    /// void Function(String)
+    if (node.name != null) {
+      if (_isProjectElement(node.declaredElement)) {
+        final replacement = projectContext.replace(node.name!.lexeme);
+        yieldPatch(replacement, node.name!.offset, node.name!.end);
+      }
     }
     super.visitSimpleFormalParameter(node);
   }

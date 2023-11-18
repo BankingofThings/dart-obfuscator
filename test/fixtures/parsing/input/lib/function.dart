@@ -25,3 +25,5 @@ String value4(int count) {
 String instance(int instance) {
   return ' ' * instance;
 }
+
+void callback(void Function(String) action) {}

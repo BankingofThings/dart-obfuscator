@@ -25,3 +25,5 @@ String h(int i) {
 String j(int j) {
   return ' ' * j;
 }
+
+void k(void Function(String) l) {}
