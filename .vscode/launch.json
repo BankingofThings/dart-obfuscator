@@ -22,6 +22,16 @@
                 "--output=/tmp/obfuscator",
                 "--overwrite",
             ],
+        },
+        {
+            "name": "dart-obfuscator - dcli",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--input=/home/bsutton/git/dcli/dcli",
+                "--output=/tmp/obfuscator",
+                "--overwrite",
+            ],
         }
     ]
 }
