@@ -61,6 +61,18 @@ class Visitor extends GeneralizingAstVisitor<void> with AstVisitingSuggestor {
     // }
 
     if (libraryElement == null || _isProjectElement(libraryElement)) {
+      if (libraryElement != null) {
+        if (libraryElement.kind == ElementKind.ENUM) {
+          /// We don't obfuscate enums as they are often used in a DB.
+          return;
+        }
+        if (libraryElement.enclosingElement!.kind == ElementKind.ENUM) {
+          /// We don't obfuscate enums identifiers either as
+          /// they are often used in a DB.
+          return;
+        }
+      }
+
       final replacement = projectContext.replace(node.name);
       yieldPatch(replacement, node.offset, node.end);
     }
