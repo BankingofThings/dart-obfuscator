@@ -15,6 +15,13 @@ class Replacer {
     var value = _replacementMap[existing];
     if (value == null) {
       value = _generateName(existing);
+
+      /// The patching system doesn't like it if we replace
+      /// a variable with the name 'a' with a variable of the
+      /// same name.
+      if (value == existing) {
+        value = _generateName(existing);
+      }
       _replacementMap[existing] = value;
     }
     return value;
