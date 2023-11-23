@@ -232,7 +232,9 @@ class ObfuscatedProject implements ProjectContext {
   /// have an editor open in the root of the output directory
   /// to monitor results.
   void _deleteOutputDir(String pathToTargetProject) {
-    final children = find('*', includeHidden: true).toList();
+    final children =
+        find('*', includeHidden: true, workingDirectory: pathToTargetProject)
+            .toList();
 
     for (final child in children) {
       if (isDirectory(child)) {
