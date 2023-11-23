@@ -16,19 +16,34 @@
         },
         {
             "name": "dart-obfuscator - self",
+            "program": "bin/op-obfuscator.dart",
             "request": "launch",
             "type": "dart",
             "args": [
                 "--output=/tmp/obfuscator",
                 "--overwrite",
+                "--filter=/**/bin"
+                // "--filter=/**/lib,/**/test/lib,/**/bin"
             ],
         },
         {
             "name": "dart-obfuscator - dcli",
+            "program": "bin/op-obfuscator.dart",
             "request": "launch",
             "type": "dart",
             "args": [
                 "--input=/home/bsutton/git/dcli/dcli",
+                "--output=/tmp/obfuscator",
+                "--overwrite",
+            ],
+        },
+        {
+            "name": "dart-obfuscator - fetch",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--input=/home/bsutton/git/dcli/dcli",
+                "--includes=**/fetch.dart",
                 "--output=/tmp/obfuscator",
                 "--overwrite",
             ],
