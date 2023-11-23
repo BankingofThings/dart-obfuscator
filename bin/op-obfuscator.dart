@@ -1,13 +1,15 @@
+// ignore_for_file: file_names
 // ignore_for_file: flutter_style_todos
 
 import 'dart:io';
 
-import 'package:args/args.dart';
+import 'package:dart_obfuscator/src/exceptions.dart';
+import 'package:dart_obfuscator/src/log_level.dart';
+import 'package:dart_obfuscator/src/obfuscated_project.dart';
 import 'package:dcli/dcli.dart';
+import 'package:path/path.dart';
 
-import 'src/exceptions.dart';
-import 'src/log_level.dart';
-import 'src/obfuscated_project.dart';
+import 'args.dart';
 
 //Improvements
 //1. Inside every class variables and methods can have same names
@@ -30,63 +32,50 @@ const logLevel = LogLevel.DEBUG;
 //    is not deleted
 
 void main(List<String> args) async {
-  final parser = ArgParser()
-    ..addOption('output',
-        abbr: 'o',
-        help: 'Path to store the obfuscated project',
-        mandatory: true)
-    ..addOption(
-      'input',
-      abbr: 'i',
-      help:
-          '''Path to the location of the project to obfuscate. Defaults to the current directory''',
-    )
-    ..addFlag('overwrite', abbr: 'w', help: '''
-If the output path exist then it will be overwritten. 
-Basic checks are peformed to ensure that the target directory was created by
-the obfuscator.''');
+  final parsed = Args(args);
 
-  late String pathToProject;
-  late String pathToObfuscatedProject;
-  late bool overwrite;
-  try {
-    final parsed = parser.parse(args);
-    pathToObfuscatedProject = parsed['output'] as String;
-    pathToProject = parsed['input'] as String? ?? pwd;
-    overwrite = parsed['overwrite'] as bool;
-  } on FormatException catch (e) {
-    printerr(e.message);
-  }
-
-  final project = DartProject.findProject(pathToProject);
+  final project = DartProject.findProject(parsed.inputPath);
   if (project == null) {
     printerr(red('The current directory does not contain a Dart project.'));
     exit(1);
   }
 
   final projectRoot = project.pathToProjectRoot;
+  if (!equals(projectRoot, parsed.inputPath)) {
+    /// warn the user that we are processing a project located in an anscestor
+    /// input path.
+    print(orange('Processing project found at: $projectRoot'));
+  }
 
+  if (isWithin(projectRoot, parsed.pathToObfuscatedProject)) {
+    printerr(red(
+        """The 'output' path ${parsed.pathToObfuscatedProject} must NOT be within the 'input' path $projectRoot"""));
+    exit(1);
+  }
   final programStartTime = DateTime.now().millisecondsSinceEpoch;
 
-  print(green('preparing $pathToObfuscatedProject'));
+  print(green('preparing ${parsed.pathToObfuscatedProject}'));
 
-  await _obfuscate(projectRoot, pathToObfuscatedProject, overwrite);
+  // lets run the obfuscator.
+  await _obfuscate(projectRoot, parsed);
 
   print('_' * 80);
   final executionTime = DateTime.fromMillisecondsSinceEpoch(
       DateTime.now().millisecondsSinceEpoch - programStartTime);
   print(
       """Obfuscation completed in ${executionTime.toIso8601String().split(':').last}""");
-  print('Result is written to $pathToObfuscatedProject');
+  print('Result is written to ${parsed.pathToObfuscatedProject}');
 }
 
-Future<void> _obfuscate(
-    String projectRoot, String pathToObfuscatedProject, bool overwrite) async {
+/// obfuscate the project.
+Future<void> _obfuscate(String projectRoot, Args args) async {
   try {
     final obfuscatedProject = ObfuscatedProject(
         pathToSourceProject: projectRoot,
-        pathToTargetProject: pathToObfuscatedProject)
-      ..prepare(overwrite: overwrite);
+        includes: args.include,
+        excludes: args.exclude,
+        pathToTargetProject: args.pathToObfuscatedProject)
+      ..prepare(overwrite: args.overwrite);
 
     print(green('obfuscating $projectRoot'));
     await obfuscatedProject.obfuscate();
