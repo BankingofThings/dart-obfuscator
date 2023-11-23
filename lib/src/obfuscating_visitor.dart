@@ -5,7 +5,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:codemod_core/codemod_core.dart';
 
-import '../lib/src/comments.dart';
+import 'comments.dart';
 import 'project_context.dart';
 import 'replacer.dart';
 

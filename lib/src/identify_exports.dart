@@ -33,7 +33,7 @@ class IdentifyImportsVisitor extends GeneralizingAstVisitor<void>
 
   final exported = <String>{};
 
-  run() {
+  void run() {
     final collection = AnalysisContextCollection(
         includedPaths: projectContext.libraries.toList());
 
