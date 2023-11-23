@@ -16,7 +16,7 @@ class Test2 extends Test {
 
   @override
   void doSomething() {
-    // no op
+    print(toString());
   }
 }
 

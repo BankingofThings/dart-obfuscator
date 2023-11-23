@@ -1,0 +1,1 @@
+typedef CustomAskPrompt = String Function();

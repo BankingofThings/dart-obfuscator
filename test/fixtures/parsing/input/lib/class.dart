@@ -21,3 +21,7 @@ class ObfuscatorException implements Exception {
 class StructureException extends ObfuscatorException {
   StructureException(super.message);
 }
+
+class CleanCommand extends ObfuscatorException {
+  CleanCommand() : super('CleanCommand');
+}

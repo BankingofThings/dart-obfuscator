@@ -21,3 +21,7 @@ class E implements Exception {
 class G extends E {
   G(super.f);
 }
+
+class H extends E {
+  H() : super('CleanCommand');
+}

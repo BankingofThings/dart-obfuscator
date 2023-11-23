@@ -11,28 +11,37 @@ class Replacer {
 
   final Map<String, String> _replacementMap = <String, String>{};
 
-  String replace(String existing) {
-    var value = _replacementMap[existing];
+  Replacement replace(String existing) {
+    Replacement replacement;
+
+    final value = _replacementMap[existing];
     if (value == null) {
-      value = _generateName(existing);
+      replacement = _generateName(existing);
 
       /// The patching system doesn't like it if we replace
       /// a variable with the name 'a' with a variable of the
       /// same name.
-      if (value == existing) {
-        value = _generateName(existing);
+      if (replacement.replacement == existing) {
+        replacement = _generateName(existing);
       }
-      _replacementMap[existing] = value;
+      _replacementMap[existing] = replacement.replacement;
+    } else {
+      replacement =
+          Replacement(existing: existing, replacement: value, patch: true);
     }
-    return value;
+    return replacement;
   }
 
   /// Generates a obfuscated name.
   /// We preserve private vars by retaining the _
-  /// and we preserver capitialise first letters so
+  /// and we preserve capitialise first letters so
   /// that class names still look like class names.
   /// TODO: is this a good idea since we are trying to obfuscate the code?
-  String _generateName(String existing) {
+  Replacement _generateName(String existing) {
+    if (existing.isEmpty) {
+      return Replacement(
+          existing: existing, replacement: existing, patch: false);
+    }
     var prefix = '';
 
     var useUpper = false;
@@ -55,9 +64,19 @@ class Replacer {
       name = '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
     }
 
-    return '$prefix$name';
+    return Replacement(
+        existing: existing, replacement: '$prefix$name', patch: true);
   }
 }
+
+class Replacement {
+  Replacement(
+      {required this.existing, required this.replacement, required this.patch});
+  String existing;
+  String replacement;
+  bool patch;
+}
+
 
 // class Replacement {
 //   Replacement(this.replaced, this.replacement);

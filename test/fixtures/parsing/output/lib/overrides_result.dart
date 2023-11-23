@@ -16,7 +16,7 @@ class C extends A {
   
   @override
   void b() {
-    
+    print(toString());
   }
 }
 
